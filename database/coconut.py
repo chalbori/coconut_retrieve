@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from database.auth import Database
 from data.unique_np import Unique_NP
-import pprint
+
 
 class COCONUT:
     def __init__(self):
@@ -25,8 +25,11 @@ class COCONUT:
         result["uniqueNaturalProduct"] = self.unique_np_collection.count_documents({})
         return result
 
-    def get_unique_stream(self):
-        stream = self.unique_np_collection.find({})
+    def get_unique_stream(self)->Unique_NP:
+        stream = self.unique_np_collection.find(
+            {}, {"_id": 1, "coconut_id": 1, "inchi": 1, "inchikey": 1}
+        )
+        # stream = self.unique_np_collection.find({})
         for doc in stream:
             result = Unique_NP()
             result.id = doc["_id"]
@@ -35,7 +38,24 @@ class COCONUT:
             result.inchikey = doc["inchikey"]
             yield result
 
+    def get_unique_source_set(self) -> list:
+        return self.source_np_collection.distinct("source")
+    
+    def get_count_source(self, source) -> int:
+        return self.source_np_collection.count_documents({"source":source})
 
+    def get_unique_source_statistics(self) -> dict:
+        result = dict()
+        source_set = self.get_unique_source_set()
+        for source in source_set:
+            result[source]=self.get_count_source(source=source)
+        return result
+       
+    def get_source_organism_set(self) -> list:
+        return self.source_np_collection.distinct("organismText")
+        
+    def get_source_organism_statistics(self) -> dict:
+        pass
 # print(db)
 # print(db.list_collection_names())
 
