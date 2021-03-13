@@ -1,5 +1,5 @@
 from database.coconut import COCONUT
-from data import source_np
+from data.source_np import Source_NP
 from pprint import pprint
 
 repo = COCONUT()
@@ -17,4 +17,5 @@ for np in repo.get_unique_stream():
 # print(repo.get_count_source(source="gnps"))
 # print(repo.get_unique_source_statistics())
 
-print(repo.get_source_organism_set())
+source_np = repo.get_source_np(object_id="5f945fc5ae0c19564521a3a1")
+print(type(source_np.organism_text))
