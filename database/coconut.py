@@ -1,16 +1,23 @@
+from pprint import pprint
+from data.source_np import Source_NP
 from pymongo import MongoClient
 from database.auth import Database
 from data.unique_np import Unique_NP
+from bson.objectid import ObjectId
 
 
 class COCONUT:
     def __init__(self):
         self.client = MongoClient(Database.connection_info)
         self.database_list = self.client.list_database_names()
-        self.db = self.client["COCONUT"]
+        # self.db = self.client["COCONUT"]
+        self.db = self.client[Database.database]
         self.quarantined_collec = self.db["quarantined"]
         self.source_np_collection = self.db["sourceNaturalProduct"]
         self.unique_np_collection = self.db["uniqueNaturalProduct"]
+
+    def __del__(self):
+        self.client.close()
 
     # db = client.get_default_database()
     # assert db.name == "COCONUT"
@@ -24,8 +31,8 @@ class COCONUT:
         result["sourceNaturalProduct"] = self.source_np_collection.count_documents({})
         result["uniqueNaturalProduct"] = self.unique_np_collection.count_documents({})
         return result
-
-    def get_unique_stream(self)->Unique_NP:
+    
+    def get_unique_stream(self):
         stream = self.unique_np_collection.find(
             {}, {"_id": 1, "coconut_id": 1, "inchi": 1, "inchikey": 1}
         )
@@ -38,24 +45,50 @@ class COCONUT:
             result.inchikey = doc["inchikey"]
             yield result
 
-    def get_unique_source_set(self) -> list:
+    def get_unique_np(self, object_id):
+        doc = self.unique_np_collection.find_one({"_id": ObjectId(object_id)})
+        return Unique_NP(
+            object_id=doc["_id"],
+            coconut_id=doc["coconut_id"],
+            inchi=doc["inchi"],
+            inchikey=doc["inchikey"],
+        )
+
+    def get_source_np(self, object_id):
+        doc = self.source_np_collection.find_one({"_id": ObjectId(object_id)})
+        result = Source_NP(
+            object_id=doc["_id"],
+            source=doc["source"],
+            name=doc["name"],
+            continent=doc["continent"],
+            organism_text=doc["organismText"],
+        )
+        return result
+
+    def get_unique_source_list(self) -> list:
         return self.source_np_collection.distinct("source")
-    
+
     def get_count_source(self, source) -> int:
-        return self.source_np_collection.count_documents({"source":source})
+        return self.source_np_collection.count_documents({"source": source})
+
+    def get_count_organism(self, organism_text) -> int:
+        return self.source_np_collection.count_documents({"organismText": organism_text})
 
     def get_unique_source_statistics(self) -> dict:
         result = dict()
-        source_set = self.get_unique_source_set()
-        for source in source_set:
-            result[source]=self.get_count_source(source=source)
+        source_list = self.get_unique_source_list()
+        for source in source_list:
+            result[source] = self.get_count_source(source=source)
         return result
-       
-    def get_source_organism_set(self) -> list:
+
+    def get_organism_list(self) -> list:
         return self.source_np_collection.distinct("organismText")
-        
-    def get_source_organism_statistics(self) -> dict:
-        pass
+
+    def get_organism_statistics_stream(self, organism_set):
+        for organism_text in organism_set:
+            yield organism_text, self.get_count_organism(organism_text=organism_text)
+
+
 # print(db)
 # print(db.list_collection_names())
 
