@@ -1,7 +1,7 @@
 class Database:
-    host = "127.0.0.1"
+    host = "1.233.215.92"
     port = "27017"
-    database = "COCONUT"
+    database = "COCONUTlatest"
     user_id = "swlee"
     user_password = "camd5882"
     connection_info = "mongodb://{}:{}@{}:{}/{}".format(
