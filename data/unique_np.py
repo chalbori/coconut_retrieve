@@ -1,9 +1,9 @@
 class Unique_NP:
-    def __init__(self):
-        self.__object_id = None
-        self.__coconut_id = None
-        self.__inchi = None
-        self.__inchikey = None
+    def __init__(self, object_id=None, coconut_id=None, inchi=None, inchikey=None):
+        self.__object_id = object_id
+        self.__coconut_id = coconut_id
+        self.__inchi = inchi
+        self.__inchikey = inchikey
 
     def __repr__(self):
         return "<Chemical(object_id={object_id}, coconut_id={coconut_id}, inchi={inchi}, inchikey={inchikey})>".format(
@@ -12,6 +12,9 @@ class Unique_NP:
             inchi=self.__inchi,
             inchikey=self.__inchikey,
         )
+
+    def __iter__(self):
+        return self
 
     @property
     def id(self):
